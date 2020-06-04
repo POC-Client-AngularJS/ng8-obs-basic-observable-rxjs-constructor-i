@@ -1,28 +1,29 @@
-import { Component } from "@angular/core";
+import { Component, AfterViewInit } from "@angular/core";
 import { Observable } from "rxjs";
-
-function sequenceSubscriber(observer) {
-  observer.next("Apple");
-  observer.next("Orange");
-  observer.next("Grappe");
-  observer.complete();
-  return { unsubscribe() {} };
-}
-const sequence = new Observable(sequenceSubscriber);
 
 @Component({
   selector: "my-app",
   templateUrl: "./app.component.html"
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit {
   name = "Angular";
-  constructor() {
-    sequence.subscribe({
-      next(msg) {
-        console.log(msg);
-      },
-      complete() {
-        console.log("Finished sequence");
+
+  fromEvent(target: HTMLInputElement, eventName: string) {
+    return new Observable(observer => {
+      const handler = (e: unknown) => observer.next(e);
+      target.addEventListener(eventName, handler);
+      return () => {
+        target.removeEventListener(eventName, handler);
+      };
+    });
+  }
+
+  ngAfterViewInit() {
+    const ESC_KEY = 27;
+    const nameInput = document.getElementById("yourname") as HTMLInputElement;
+    this.fromEvent(nameInput, "keydown").subscribe((e: KeyboardEvent) => {
+      if (e.keyCode === ESC_KEY) {
+        nameInput.value = "";
       }
     });
   }
